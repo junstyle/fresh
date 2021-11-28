@@ -1,56 +1,68 @@
 package runner
 
 import (
+	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
-	"github.com/howeyc/fsnotify"
+	"github.com/fsnotify/fsnotify"
 )
 
-func watchFolder(path string) {
+func watch() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		fatal(err)
+		log.Fatal(err)
 	}
+	defer watcher.Close()
 
 	go func() {
 		for {
 			select {
-			case ev := <-watcher.Event:
-				if isWatchedFile(ev.Name) {
-					watcherLog("sending event %s", ev)
-					startChannel <- ev.String()
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return
 				}
-			case err := <-watcher.Error:
+				if event.Op&fsnotify.Write == fsnotify.Write && isWatchedFile(event.Name) {
+					watcherLog("sending event %s", event)
+					startChannel <- event.String()
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
 				watcherLog("error: %s", err)
 			}
 		}
 	}()
 
-	watcherLog("Watching %s", path)
-	err = watcher.Watch(path)
-
-	if err != nil {
-		fatal(err)
-	}
-}
-
-func watch() {
-	wps := watchPaths()
-	for _, p := range wps {
-		filepath.Walk(strings.TrimSpace(p), func(path string, info os.FileInfo, err error) error {
-			if info.IsDir() && !isTmpDir(path) {
-				if len(path) > 1 && strings.HasPrefix(filepath.Base(path), ".") {
+	wfolders := []string{}
+	for _, p := range watchPaths() {
+		tp := strings.TrimSpace(p)
+		filepath.Walk(tp, func(pth string, info os.FileInfo, err error) error {
+			if info.IsDir() && !isTmpDir(pth) {
+				if len(pth) > 1 && strings.HasPrefix(filepath.Base(pth), ".") {
 					return filepath.SkipDir
 				}
 
-				if isIgnoredFolder(path) {
-					watcherLog("Ignoring %s", path)
+				if isIgnoredFolder(pth) {
+					watcherLog("Ignoring %s", pth)
 					return filepath.SkipDir
 				}
 
-				watchFolder(path)
+				fp := path.Join(tp, pth)
+				if inArray(wfolders, fp) {
+					return filepath.SkipDir
+				}
+				wfolders = append(wfolders, fp)
+
+				err := watcher.Add(fp)
+				if err != nil {
+					watcherLog("Add watch path err:%s", err)
+				} else {
+					watcherLog("Watching %s", pth)
+				}
 			}
 
 			return err
