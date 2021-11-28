@@ -3,7 +3,6 @@ package runner
 import (
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -15,7 +14,6 @@ func watch() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer watcher.Close()
 
 	go func() {
 		for {
@@ -51,15 +49,14 @@ func watch() {
 					return filepath.SkipDir
 				}
 
-				fp := path.Join(tp, pth)
-				if inArray(wfolders, fp) {
+				if inArray(wfolders, pth) {
 					return filepath.SkipDir
 				}
-				wfolders = append(wfolders, fp)
+				wfolders = append(wfolders, pth)
 
-				err := watcher.Add(fp)
+				err := watcher.Add(pth)
 				if err != nil {
-					watcherLog("Add watch path err:%s", err)
+					watcherLog("Add watch path error. path:%s, err:%s", pth, err)
 				} else {
 					watcherLog("Watching %s", pth)
 				}
