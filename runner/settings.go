@@ -20,6 +20,7 @@ const (
 var settings = map[string]string{
 	"config_path":       "./runner.conf",
 	"root":              ".",
+	"watch_paths":       "", //watched pathes, seperate by semi;
 	"tmp_path":          "./tmp",
 	"build_name":        "runner-build",
 	"build_log":         "runner-build-errors.log",
@@ -112,6 +113,20 @@ func root() string {
 	return settings["root"]
 }
 
+func watchPaths() []string {
+	s := strings.TrimSpace(settings["watch_paths"])
+	if s != "" {
+		r := root()
+		ps := strings.Split(s, ";")
+		if !inArray(ps, r) {
+			ps = append(ps, r)
+		}
+		return ps
+	} else {
+		return []string{}
+	}
+}
+
 func tmpPath() string {
 	return settings["tmp_path"]
 }
@@ -143,4 +158,13 @@ func buildDelay() time.Duration {
 	value, _ := strconv.Atoi(settings["build_delay"])
 
 	return time.Duration(value)
+}
+
+func inArray(a []string, s string) bool {
+	for _, item := range a {
+		if item == s {
+			return true
+		}
+	}
+	return false
 }
