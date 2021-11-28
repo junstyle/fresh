@@ -54,15 +54,14 @@ func watch() {
 					watcherLog("Add watch path error. path:%s, err:%s", pth, err)
 					return filepath.SkipDir
 				}
-
 				if inArray(wfolders, apath) {
 					return filepath.SkipDir
 				}
 				wfolders = append(wfolders, apath)
 
-				err = watcher.Add(apath)
+				err = watcher.Add(pth)
 				if err != nil {
-					watcherLog("Add watch path error. path:%s, err:%s", apath, err)
+					watcherLog("Add watch path error. path:%s, err:%s", pth, err)
 				} else {
 					watcherLog("Watching %s", pth)
 				}
