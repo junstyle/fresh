@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"flag"
 	"io"
 	"io/ioutil"
 	"os"
@@ -10,13 +11,16 @@ import (
 func build() (string, bool) {
 	buildLog("Building...")
 
-	cmd := exec.Command("go", "build", "-o", buildPath(), root())
+	args := []string{"build"}
+	args = append(args, buildArgs()...)
+	args = append(args, "-o", buildPath(), root())
+	cmd := exec.Command("go", args...)
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		fatal(err)
 	}
-
+	flag.Parse()
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fatal(err)

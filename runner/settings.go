@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -23,6 +24,7 @@ var settings = map[string]string{
 	"watch_paths":       "", //watched pathes, seperate by semi;
 	"tmp_path":          "./tmp",
 	"build_name":        "runner-build",
+	"build_args":        "",
 	"build_log":         "runner-build-errors.log",
 	"valid_ext":         ".go, .tpl, .tmpl, .html",
 	"no_rebuild_ext":    ".tpl, .tmpl, .html",
@@ -140,6 +142,12 @@ func buildPath() string {
 		p += ".exe"
 	}
 	return p
+}
+
+func buildArgs() []string {
+	args := settings["build_args"]
+	args = regexp.MustCompile(`(-\w+=|-\w+\s*$)`).ReplaceAllString(args, "|^|$1")
+	return strings.Split(args, "|^|")
 }
 
 func buildErrorsFileName() string {
