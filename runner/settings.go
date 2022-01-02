@@ -145,9 +145,14 @@ func buildPath() string {
 }
 
 func buildArgs() []string {
-	args := settings["build_args"]
-	args = regexp.MustCompile(`(-\w+\s+|-\w+\s*$)`).ReplaceAllString(args, "|^|$1|^|")
-	return strings.Split(args, "|^|")
+	s := regexp.MustCompile(`(-\w+\s+|-\w+\s*$)`).ReplaceAllString(settings["build_args"], "|^|$1|^|")
+	args := []string{}
+	for _, a := range strings.Split(s, "|^|") {
+		if strings.TrimSpace(a) != "" {
+			args = append(args, strings.TrimSpace(a))
+		}
+	}
+	return args
 }
 
 func buildErrorsFileName() string {
