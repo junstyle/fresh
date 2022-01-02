@@ -16,7 +16,7 @@ func build() (string, bool) {
 	args = append(args, buildArgs()...)
 	args = append(args, "-o", buildPath(), root())
 	cmd := exec.Command("go", args...)
-	fmt.Printf("%v", cmd.Args)
+	fmt.Printf("%#v", cmd.Args)
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
