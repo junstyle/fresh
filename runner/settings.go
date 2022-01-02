@@ -146,7 +146,7 @@ func buildPath() string {
 
 func buildArgs() []string {
 	args := settings["build_args"]
-	args = regexp.MustCompile(`(-\w+=|-\w+\s*$)`).ReplaceAllString(args, "|^|$1")
+	args = regexp.MustCompile(`(-\w+\s+|-\w+\s*$)`).ReplaceAllString(args, "|^|$1|^|")
 	return strings.Split(args, "|^|")
 }
 
