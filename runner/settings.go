@@ -119,7 +119,10 @@ func watchPaths() []string {
 	s := strings.TrimSpace(settings["watch_paths"])
 	if s != "" {
 		r := root()
-		ps := strings.Split(s, ";")
+		ps := []string{}
+		for _, ss := range strings.Split(s, ",") {
+			ps = append(ps, strings.TrimSpace(ss))
+		}
 		if !inArray(ps, r) {
 			ps = append(ps, r)
 		}
