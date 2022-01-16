@@ -39,6 +39,10 @@ func watch() {
 	for _, p := range watchPaths() {
 		tp := strings.TrimSpace(p)
 		filepath.Walk(tp, func(pth string, info os.FileInfo, err error) error {
+			if err != nil {
+				watcherLog("path: %v; info: %v; error: %v\n", pth, info, err)
+				return err
+			}
 			if info.IsDir() && !isTmpDir(pth) {
 				if len(pth) > 1 && strings.HasPrefix(filepath.Base(pth), ".") {
 					return filepath.SkipDir
