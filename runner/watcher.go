@@ -25,14 +25,19 @@ func watch() {
 					return
 				}
 				if event.Op&fsnotify.Write == fsnotify.Write && isWatchedFile(event.Name) {
+					//如果修改时间是30秒之前，就忽略，多数出现在windows系统，多次触发Write事件，其实文件并没有修改
 					if runtime.GOOS == "windows" {
-						stat, _ := os.Stat(event.Name)
-						//如果修改时间是30秒之前，就忽略，多数出现在windows系统，多次触发Write事件，其实文件并没有修改
-						if stat.ModTime().Add(time.Second * 10).Before(time.Now()) {
-							watcherLog("sending event %s, [ignore]", event)
+						if stat, err := os.Stat(event.Name); err != nil {
+							watcherLog("error: %s", err)
 							return
+						} else {
+							if stat.ModTime().Add(time.Second * 10).Before(time.Now()) {
+								watcherLog("sending event %s, [ignore]", event)
+								return
+							}
 						}
 					}
+
 					watcherLog("sending event %s", event)
 					startChannel <- event.String()
 				}
