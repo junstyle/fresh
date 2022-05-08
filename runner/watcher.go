@@ -28,7 +28,7 @@ func watch() {
 					if runtime.GOOS == "windows" {
 						stat, _ := os.Stat(event.Name)
 						//如果修改时间是30秒之前，就忽略，多数出现在windows系统，多次触发Write事件，其实文件并没有修改
-						if stat.ModTime().Add(time.Second * 30).Before(time.Now()) {
+						if stat.ModTime().Add(time.Second * 10).Before(time.Now()) {
 							watcherLog("sending event %s, [ignore]", event)
 							return
 						}
