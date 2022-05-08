@@ -4,7 +4,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -23,6 +25,13 @@ func watch() {
 					return
 				}
 				if event.Op&fsnotify.Write == fsnotify.Write && isWatchedFile(event.Name) {
+					if runtime.GOOS == "windows" {
+						stat, _ := os.Stat(event.Name)
+						//如果修改时间是30秒之前，就忽略，多数出现在windows系统，多次触发Write事件，其实文件并没有修改
+						if stat.ModTime().Add(time.Second * 30).Before(time.Now()) {
+							return
+						}
+					}
 					watcherLog("sending event %s", event)
 					startChannel <- event.String()
 				}
