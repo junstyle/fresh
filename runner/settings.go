@@ -26,6 +26,7 @@ var settings = map[string]string{
 	"build_name":        "runner-build",
 	"build_args":        "",
 	"build_log":         "runner-build-errors.log",
+	"run_args":          "",
 	"valid_ext":         ".go, .tpl, .tmpl, .html",
 	"no_rebuild_ext":    ".tpl, .tmpl, .html",
 	"ignored":           "assets, tmp",
@@ -164,6 +165,18 @@ func buildErrorsFileName() string {
 
 func buildErrorsFilePath() string {
 	return filepath.Join(tmpPath(), buildErrorsFileName())
+}
+
+// runArgs 运行app时的参数
+func runArgs() []string {
+	s := regexp.MustCompile(`(-\w+\s+|-\w+\s*$)`).ReplaceAllString(settings["run_args"], "|^|$1|^|")
+	args := []string{}
+	for _, a := range strings.Split(s, "|^|") {
+		if strings.TrimSpace(a) != "" {
+			args = append(args, strings.TrimSpace(a))
+		}
+	}
+	return args
 }
 
 func configPath() string {
