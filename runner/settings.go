@@ -1,10 +1,10 @@
 package runner
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -149,13 +149,15 @@ func buildPath() string {
 }
 
 func buildArgs() []string {
-	s := regexp.MustCompile(`(-\w+\s+|-\w+\s*$)`).ReplaceAllString(settings["build_args"], "|^|$1|^|")
-	args := []string{}
-	for _, a := range strings.Split(s, "|^|") {
-		if strings.TrimSpace(a) != "" {
-			args = append(args, strings.TrimSpace(a))
-		}
-	}
+	// s := regexp.MustCompile(`(-\w+\s+|-\w+\s*$)`).ReplaceAllString(settings["build_args"], "|^|$1|^|")
+	// args := []string{}
+	// for _, a := range strings.Split(s, "|^|") {
+	// 	if strings.TrimSpace(a) != "" {
+	// 		args = append(args, strings.TrimSpace(a))
+	// 	}
+	// }
+	// return args
+	args, _ := parseCommandLine(settings["build_args"])
 	return args
 }
 
@@ -169,13 +171,15 @@ func buildErrorsFilePath() string {
 
 // runArgs 运行app时的参数
 func runArgs() []string {
-	s := regexp.MustCompile(`(-\w+\s+|-\w+\s*$)`).ReplaceAllString(settings["run_args"], "|^|$1|^|")
-	args := []string{}
-	for _, a := range strings.Split(s, "|^|") {
-		if strings.TrimSpace(a) != "" {
-			args = append(args, strings.TrimSpace(a))
-		}
-	}
+	// s := regexp.MustCompile(`(-\w+\s+|-\w+\s*$)`).ReplaceAllString(settings["run_args"], "|^|$1|^|")
+	// args := []string{}
+	// for _, a := range strings.Split(s, "|^|") {
+	// 	if strings.TrimSpace(a) != "" {
+	// 		args = append(args, strings.TrimSpace(a))
+	// 	}
+	// }
+	// return args
+	args, _ := parseCommandLine(settings["run_args"])
 	return args
 }
 
@@ -196,4 +200,70 @@ func inArray(a []string, s string) bool {
 		}
 	}
 	return false
+}
+
+func parseCommandLine(command string) ([]string, error) {
+	command = strings.TrimSpace(command)
+
+	var args []string
+	state := "start"
+	current := ""
+	quote := "\""
+	escapeNext := true
+	for _, c := range command {
+
+		if state == "quotes" {
+			if string(c) != quote {
+				current += string(c)
+			} else {
+				args = append(args, current)
+				current = ""
+				state = "start"
+			}
+			continue
+		}
+
+		if escapeNext {
+			current += string(c)
+			escapeNext = false
+			continue
+		}
+
+		if c == '\\' {
+			escapeNext = true
+			continue
+		}
+
+		if c == '"' || c == '\'' {
+			state = "quotes"
+			quote = string(c)
+			continue
+		}
+
+		if state == "arg" {
+			if c == ' ' || c == '\t' {
+				args = append(args, current)
+				current = ""
+				state = "start"
+			} else {
+				current += string(c)
+			}
+			continue
+		}
+
+		if c != ' ' && c != '\t' {
+			state = "arg"
+			current += string(c)
+		}
+	}
+
+	if state == "quotes" {
+		return []string{}, errors.New(fmt.Sprintf("Unclosed quote in command line: %s", command))
+	}
+
+	if current != "" {
+		args = append(args, current)
+	}
+
+	return args, nil
 }
