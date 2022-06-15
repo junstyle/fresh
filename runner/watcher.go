@@ -78,7 +78,7 @@ func watch() {
 				}
 				wfolders = append(wfolders, apath)
 
-				err = watcher.Add(pth)
+				err = watcher.Add(apath)
 				if err != nil {
 					watcherLog("Add watch path error. path:%s, err:%s", pth, err)
 				} else {
