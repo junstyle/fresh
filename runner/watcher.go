@@ -32,13 +32,13 @@ func watch() {
 							return
 						} else {
 							if stat.ModTime().Add(time.Second * 10).Before(time.Now()) {
-								watcherLog("sending event %s, [ignore]", event)
+								watcherLog("sending event %#q, [ignore]", event)
 								return
 							}
 						}
 					}
 
-					watcherLog("sending event %s", event)
+					watcherLog("sending event %#q", event)
 					startChannel <- event.String()
 				}
 			case err, ok := <-watcher.Errors:
@@ -55,7 +55,7 @@ func watch() {
 		tp := strings.TrimSpace(p)
 		filepath.Walk(tp, func(pth string, info os.FileInfo, err error) error {
 			if err != nil {
-				watcherLog("path: %v; info: %v; error: %v\n", pth, info, err)
+				watcherLog("path: %#q; info: %v; error: %v\n", pth, info, err)
 				return err
 			}
 			if info.IsDir() && !isTmpDir(pth) {
@@ -64,13 +64,13 @@ func watch() {
 				}
 
 				if isIgnoredFolder(pth) {
-					watcherLog("Ignoring %s", pth)
+					watcherLog("Ignoring %#q", pth)
 					return filepath.SkipDir
 				}
 
 				apath, err := filepath.Abs(pth)
 				if err != nil {
-					watcherLog("Add watch path error. path:%s, err:%s", pth, err)
+					watcherLog("Add watch path error. path:%#q, err:%s", pth, err)
 					return filepath.SkipDir
 				}
 				if inArray(wfolders, apath) {
@@ -82,7 +82,7 @@ func watch() {
 				if err != nil {
 					watcherLog("Add watch path error. path:%s, err:%s", pth, err)
 				} else {
-					watcherLog("Watching %s", pth)
+					watcherLog("Watching %#q", pth)
 				}
 			}
 

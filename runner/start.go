@@ -41,7 +41,7 @@ func start() {
 			mainLog("Waiting (loop %d)...", loopIndex)
 			eventName := <-startChannel
 
-			mainLog("receiving first event %s", eventName)
+			mainLog("receiving first event %#q", eventName)
 			mainLog("sleeping for %d milliseconds", buildDelay)
 			time.Sleep(buildDelay * time.Millisecond)
 			mainLog("flushing events")
