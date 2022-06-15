@@ -32,13 +32,13 @@ func watch() {
 							return
 						} else {
 							if stat.ModTime().Add(time.Second * 10).Before(time.Now()) {
-								watcherLog("sending event %#q, [ignore]", event)
+								watcherLog("sending event %s, [ignore]", event)
 								return
 							}
 						}
 					}
 
-					watcherLog("sending event %#q", event)
+					watcherLog("sending event %s", event)
 					startChannel <- event.String()
 				}
 			case err, ok := <-watcher.Errors:
